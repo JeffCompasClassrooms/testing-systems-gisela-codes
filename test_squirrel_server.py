@@ -29,52 +29,34 @@ def describe_squirrel_server():
 
     @pytest.fixture(autouse=True, scope='session')
     def start_and_stop_server():
-        command = ["python", "-m", "http.server", "8080"]
-
-        server_process = subprocess.Popen(command)
-        try:
-            conn = http.client.HTTPConnection('localhost:8080', timeout=1)
-            conn.request("GET", "/squirrels")
-            response = conn.getresponse()
-            conn.close()
-            # Server is running, assume it's the test server
-            server_process = None
-        except:
-            # Server not running, start it
-            server_process = subprocess.Popen(
-                [sys.executable, 'squirrel_server.py'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE                
-            )
-            # Wait for server to start
-            time.sleep(2)
-            
-            # Verify server started successfully
-            max_retries = 5
-            for i in range(max_retries):
-                try:
-                    conn = http.client.HTTPConnection('localhost:8080', timeout=1)
-                    conn.request("GET", "/squirrels")
-                    response = conn.getresponse()
-                    conn.close()
-                    break
-                except:
-                    if i < max_retries - 1:
-                        time.sleep(1)
-                    else:
-                        if server_process:
-                            server_process.kill()
-                        raise Exception("Server failed to start")
+        # Always start the custom squirrel server (not http.server)
+        server_process = subprocess.Popen([sys.executable, 'squirrel_server.py'])
+        
+        # Wait for server to start
+        time.sleep(2)
+        
+        # Verify server started successfully
+        max_retries = 5
+        for i in range(max_retries):
+            try:
+                conn = http.client.HTTPConnection('localhost:8080', timeout=1)
+                conn.request("GET", "/squirrels")
+                response = conn.getresponse()
+                conn.close()
+                break
+            except:
+                if i < max_retries - 1:
+                    time.sleep(1)
+                else:
+                    server_process.kill()
+                    raise Exception("Server failed to start")
         
         yield
         
-        if server_process:
-            # stop the server process
-            server_process.terminate()
-            print("Server stopped.")
-        # run the server
-        # first check to see if the server is running already. Decide what to do about that
-        # if it isn't running, start it.
+        # stop the server process
+        server_process.terminate()
+        server_process.wait()
+        print("Server stopped.")
 
     # you can use http_client or you can use requests. 
     # or you could decide that you don't want to do a fixture for this.
