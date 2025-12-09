@@ -29,7 +29,7 @@ def describe_squirrel_server():
 
     @pytest.fixture(autouse=True, scope='session')
     def start_and_stop_server():
-        command = ["python", "-m", "http.server", "8000"]
+        command = ["python", "-m", "http.server", "8080"]
 
         server_process = subprocess.Popen(command)
         try:
