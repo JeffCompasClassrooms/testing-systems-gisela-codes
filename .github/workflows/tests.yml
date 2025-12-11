@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install pytest pytest-spec pytest-describe coverage
+        run: pip install pytest pytest-spec pytest-describe pytest-mock coverage
       
       - name: run test
         run: pytest --spec
